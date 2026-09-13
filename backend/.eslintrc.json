@@ -1,0 +1,7 @@
+{
+  "extends": ["standard", "prettier"],
+  "env": {
+    "node": true,
+    "es2022": true
+  }
+}
