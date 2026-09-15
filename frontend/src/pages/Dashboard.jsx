@@ -15,15 +15,18 @@ import {
 } from 'recharts';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const colors = ['#e06b4d', '#527b64', '#d4a24c', '#6f8290', '#9a6b58'];
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
   useEffect(() => {
+    const params = user.role === 'agent' ? { assignedAgent: user.id } : undefined;
     api
-      .get('/dashboard/stats')
+      .get('/dashboard/stats', { params })
       .then((response) => setStats(response.data.data))
       .catch(() => setError('Unable to load dashboard'));
   }, []);
@@ -38,15 +41,7 @@ export default function Dashboard() {
         </div>
         <span className="live">● LIVE DATA</span>
       </header>
-      <section className="metrics">
-        <Metric label="Total leads" value={stats.total} />
-        <Metric label="Conversion rate" value={`${stats.conversionRate}%`} />
-        <Metric label="Contact rate" value={`${stats.contactRate}%`} />
-        <Metric
-          label="Pipeline value"
-          value={`₹${(stats.totalPipeline / 10000000).toFixed(1)}Cr`}
-        />
-      </section>
+      <StatsCards stats={stats} />
       <section className="followup-links">
         <Link to="/leads?followUp=overdue">
           <strong>{stats.overdueFollowUps}</strong>
@@ -91,6 +86,17 @@ export default function Dashboard() {
     </>
   );
 }
+export function StatsCards({ stats }) {
+  return (
+    <section className="metrics">
+      <Metric label="Total leads" value={stats.total} />
+      <Metric label="Conversion rate" value={`${stats.conversionRate}%`} />
+      <Metric label="Contact rate" value={`${stats.contactRate}%`} />
+      <Metric label="Pipeline value" value={`₹${(stats.totalPipeline / 10000000).toFixed(1)}Cr`} />
+    </section>
+  );
+}
+
 function Metric({ label, value }) {
   return (
     <div className="metric">

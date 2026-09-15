@@ -8,6 +8,7 @@ import Leads from './pages/Leads';
 import Login from './pages/Login';
 import ChangePassword from './pages/ChangePassword';
 import Users from './pages/Users';
+import AgentDetail from './pages/AgentDetail';
 import Bootstrap from './pages/Bootstrap';
 
 function Layout() {
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="/change-password" element={<ChangePassword />} />
           <Route element={<ProtectedRoute adminOnly />}>
             <Route path="/users" element={<Users />} />
+            <Route path="/users/:id" element={<AgentDetail />} />
           </Route>
         </Route>
       </Route>

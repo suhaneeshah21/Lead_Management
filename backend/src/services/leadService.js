@@ -54,7 +54,7 @@ class LeadService {
       if (!mongoose.isValidObjectId(assignedAgent)) {
         throw new AppError('Invalid assigned agent', 400, 'INVALID_AGENT');
       }
-      filter.assignedAgent = assignedAgent;
+      filter.assignedAgent = new mongoose.Types.ObjectId(assignedAgent);
     }
 
     return filter;
@@ -62,7 +62,7 @@ class LeadService {
 
   scopeFilter(filter, actor) {
     if (actor.role === 'admin') return filter;
-    return { ...filter, assignedAgent: actor.id };
+    return { ...filter, assignedAgent: new mongoose.Types.ObjectId(actor.id) };
   }
 
   async list(query, actor) {

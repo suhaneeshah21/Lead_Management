@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Users() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'agent' });
   const [error, setError] = useState('');
@@ -39,7 +42,8 @@ export default function Users() {
       setForm({ name: '', email: '', password: '', role: 'agent' });
       load();
     } catch (requestError) {
-      const details = requestError.response?.data?.error?.details || requestError.response?.data?.errors;
+      const details =
+        requestError.response?.data?.error?.details || requestError.response?.data?.errors;
       if (Array.isArray(details)) {
         setFieldErrors(
           details.reduce((result, item) => ({ ...result, [item.path || item.param]: item.msg }), {})
@@ -125,11 +129,21 @@ export default function Users() {
           <tbody>
             {users.map((user) => (
               <tr key={user.id}>
-                <td>{user.name}</td>
+                <td>
+                  {user.role === 'agent' ? (
+                    <Link to={`/users/${user.id}?assignedAgent=${user.id}`}>{user.name}</Link>
+                  ) : (
+                    user.name
+                  )}
+                </td>
                 <td>{user.email}</td>
                 <td>
                   <select
                     value={user.role}
+                    disabled={user.id === currentUser.id}
+                    title={
+                      user.id === currentUser.id ? 'You cannot change your own role' : undefined
+                    }
                     onChange={(event) =>
                       api.put(`/users/${user.id}`, { role: event.target.value }).then(load)
                     }

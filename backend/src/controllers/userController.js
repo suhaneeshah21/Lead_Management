@@ -1,4 +1,5 @@
 const { body, param, validationResult } = require('express-validator');
+const AppError = require('../utils/AppError');
 const userService = require('../services/userService');
 
 const validate = (req, res, next) => {
@@ -72,6 +73,9 @@ class UserController {
 
   async update(req, res, next) {
     try {
+      if (req.user.id === req.params.id && Object.prototype.hasOwnProperty.call(req.body, 'role')) {
+        throw new AppError('Cannot change your own role', 400, 'SELF_ROLE_CHANGE');
+      }
       const user = await userService.update(req.params.id, req.body);
       res.json({ success: true, data: { user } });
     } catch (error) {

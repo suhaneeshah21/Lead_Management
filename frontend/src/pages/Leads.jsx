@@ -4,7 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 
-export default function Leads() {
+export default function Leads({ fixedAssignedAgent = '', allowImport = true }) {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
   const [result, setResult] = useState(null);
@@ -23,10 +23,12 @@ export default function Leads() {
   useEffect(() => {
     const timer = setTimeout(() => load(), 400);
     return () => clearTimeout(timer);
-  }, [params]);
+  }, [params, fixedAssignedAgent]);
   async function load() {
     try {
-      const response = await api.get('/leads', { params: Object.fromEntries(params) });
+      const response = await api.get('/leads', {
+        params: buildLeadParams(params, fixedAssignedAgent),
+      });
       setResult(response.data.data);
       setError('');
     } catch {
@@ -52,14 +54,16 @@ export default function Leads() {
           </h1>
         </div>
         <div className="head-actions">
-          <button className={params.get('assignedAgent') ? 'selected' : ''} onClick={toggleMine}>
-            ⌁ My Leads
-          </button>
+          {!fixedAssignedAgent && (
+            <button className={params.get('assignedAgent') ? 'selected' : ''} onClick={toggleMine}>
+              ⌁ My Leads
+            </button>
+          )}
           <Link className="primary button-link" to="/leads/new">
             ＋ Add lead
           </Link>
-          <button onClick={() => setShowImport(true)}>⇧ Import CSV</button>
-          <button onClick={() => exportCsv(params)}>⇩ Export CSV</button>
+          {allowImport && <button onClick={() => setShowImport(true)}>⇧ Import CSV</button>}
+          <button onClick={() => exportCsv(params, fixedAssignedAgent)}>⇩ Export CSV</button>
         </div>
       </header>
       <div className="toolbar">
@@ -112,9 +116,7 @@ export default function Leads() {
                     </td>
                     <td>{lead.phone}</td>
                     <td>{lead.source}</td>
-                    {user.role === 'admin' && (
-                      <td>{lead.assignedAgent?.name || 'Unassigned'}</td>
-                    )}
+                    {user.role === 'admin' && <td>{lead.assignedAgent?.name || 'Unassigned'}</td>}
                     <td>
                       {lead.followUpDate
                         ? new Date(lead.followUpDate).toLocaleDateString()
@@ -225,12 +227,22 @@ async function downloadTemplate() {
   link.click();
   URL.revokeObjectURL(url);
 }
-async function exportCsv(params) {
-  const response = await api.get('/leads/export', { params, responseType: 'blob' });
+async function exportCsv(params, fixedAssignedAgent) {
+  const response = await api.get('/leads/export', {
+    params: buildLeadParams(params, fixedAssignedAgent),
+    responseType: 'blob',
+  });
   const url = URL.createObjectURL(response.data);
   const link = document.createElement('a');
   link.href = url;
   link.download = 'leads.csv';
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function buildLeadParams(params, fixedAssignedAgent) {
+  return {
+    ...Object.fromEntries(params),
+    ...(fixedAssignedAgent ? { assignedAgent: fixedAssignedAgent } : {}),
+  };
 }
