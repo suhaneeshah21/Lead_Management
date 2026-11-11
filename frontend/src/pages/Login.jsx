@@ -55,6 +55,15 @@ export default function Login() {
             onChange={(event) => setCredentials({ ...credentials, password: event.target.value })}
           />
         </label>
+        <div className="demo-credentials" aria-label="Demo admin credentials">
+          <strong>Demo admin access</strong>
+          <span>
+            Email: <code>admin@example.com</code>
+          </span>
+          <span>
+            Password: <code>Admin1234!</code>
+          </span>
+        </div>
         {error && <p className="error">{error}</p>}
         <button className="primary" disabled={loading}>
           {loading ? 'Signing in...' : 'Sign in'} <span>→</span>
