@@ -2,6 +2,16 @@ import { createContext, useContext, useMemo, useState } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
+const loginRetryDelay = 3000;
+const maxLoginRetries = 2;
+
+function shouldRetryLogin(error) {
+  return !error.response || [502, 503, 504].includes(error.response.status);
+}
+
+function waitForRetry() {
+  return new Promise((resolve) => setTimeout(resolve, loginRetryDelay));
+}
 
 function readStoredUser() {
   try {
@@ -15,7 +25,22 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(readStoredUser);
 
   async function login(credentials) {
-    const response = await api.post('/auth/login', credentials);
+    let response;
+    let attempt = 0;
+
+    while (!response) {
+      try {
+        response = await api.post('/auth/login', credentials);
+      } catch (error) {
+        if (attempt >= maxLoginRetries || !shouldRetryLogin(error)) {
+          throw error;
+        }
+
+        attempt += 1;
+        await waitForRetry();
+      }
+    }
+
     const nextUser = response.data.data.user;
     localStorage.setItem('crm_token', response.data.data.token);
     localStorage.setItem('crm_user', JSON.stringify(nextUser));
