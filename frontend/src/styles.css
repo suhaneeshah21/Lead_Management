@@ -597,3 +597,34 @@ td small {
     gap: 14px;
   }
 }
+
+@media (max-width: 768px) {
+  .login {
+    grid-template-columns: 1fr;
+  }
+  .login-art {
+    min-height: 150px;
+    padding: 20px;
+  }
+  .login-art .brand {
+    margin: 0 0 12px;
+  }
+  .login-art h1 {
+    display: none;
+  }
+  .login-art p {
+    margin: 0;
+    font-size: 15px;
+  }
+  .login-form {
+    width: 100%;
+    max-width: none;
+    padding: 24px 20px;
+  }
+  .login-form input {
+    font-size: 16px;
+  }
+  .login-form button {
+    min-height: 44px;
+  }
+}
