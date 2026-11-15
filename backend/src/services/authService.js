@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const AppError = require('../utils/AppError');
@@ -23,12 +24,21 @@ function toPublicUser(user) {
 
 class AuthService {
   async bootstrap(data, bootstrapKey) {
-    if (bootstrapKey !== config.bootstrapKey) {
+    if (await userRepository.count({ role: 'admin' })) {
+      throw new AppError('Admin already exists', 403, 'BOOTSTRAP_COMPLETE');
+    }
+
+    if (!config.bootstrapKey || !bootstrapKey) {
       throw new AppError('Invalid bootstrap key', 403, 'FORBIDDEN');
     }
 
-    if (await userRepository.count({ role: 'admin' })) {
-      throw new AppError('Admin already exists', 409, 'BOOTSTRAP_COMPLETE');
+    const configuredKey = Buffer.from(config.bootstrapKey);
+    const providedKey = Buffer.from(bootstrapKey);
+    if (
+      configuredKey.length !== providedKey.length ||
+      !crypto.timingSafeEqual(configuredKey, providedKey)
+    ) {
+      throw new AppError('Invalid bootstrap key', 403, 'FORBIDDEN');
     }
 
     if (await userRepository.findByEmail(data.email)) {

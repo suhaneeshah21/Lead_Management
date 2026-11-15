@@ -16,7 +16,11 @@ export default function Bootstrap() {
       );
       navigate('/login');
     } catch (requestError) {
-      setError(requestError.response?.data?.error?.message || 'Unable to create admin');
+      setError(
+        requestError.response?.status === 403
+          ? requestError.response.data?.error?.message || 'Admin setup is not available'
+          : requestError.response?.data?.error?.message || 'Unable to create admin'
+      );
     }
   }
   return (

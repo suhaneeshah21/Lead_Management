@@ -8,5 +8,5 @@ module.exports = {
   jwtSecret: process.env.JWT_SECRET || 'development-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1d',
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3002',
-  bootstrapKey: process.env.ADMIN_BOOTSTRAP_KEY || 'change-me',
+  bootstrapKey: process.env.ADMIN_BOOTSTRAP_KEY,
 };
