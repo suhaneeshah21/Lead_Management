@@ -32,6 +32,7 @@ async function auth(req, res, next) {
       id: user._id.toString(),
       role: user.role,
       name: user.name,
+      isDemo: user.isDemo,
     };
     next();
   } catch (error) {
@@ -52,4 +53,11 @@ function allowRoles(...roles) {
   };
 }
 
-module.exports = { auth, allowRoles };
+function blockDemoUser(req, res, next) {
+  if (req.user.isDemo) {
+    return next(new AppError("Demo accounts can't manage users", 403, 'DEMO_USER_FORBIDDEN'));
+  }
+  next();
+}
+
+module.exports = { auth, allowRoles, blockDemoUser };

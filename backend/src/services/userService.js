@@ -11,6 +11,7 @@ function toPublicUser(user) {
     role: user.role,
     isActive: user.isActive,
     mustChangePassword: user.mustChangePassword,
+    isDemo: user.isDemo,
   };
 }
 
@@ -39,26 +40,52 @@ class UserService {
       ...data,
       role: data.role || 'agent',
       mustChangePassword: true,
+      isDemo: false,
     });
 
     return toPublicUser(user);
   }
 
   async update(id, data) {
-    const user = await userRepository.update(id, data);
+    const user = await userRepository.findById(id);
     if (!user) throw new AppError('User not found', 404, 'NOT_FOUND');
+
+    if (
+      user.isDemo &&
+      ((data.role !== undefined && data.role !== user.role) || data.isActive === false)
+    ) {
+      throw new AppError("Demo accounts can't be modified", 403, 'DEMO_ACCOUNT_FORBIDDEN');
+    }
+
+    if (
+      user.role === 'admin' &&
+      !user.isDemo &&
+      user.isActive &&
+      ((data.role === 'agent' && data.role !== user.role) || data.isActive === false) &&
+      (await userRepository.count({ role: 'admin', isActive: true, isDemo: { $ne: true } })) <= 1
+    ) {
+      throw new AppError('Cannot remove the last active admin', 403, 'LAST_ADMIN');
+    }
+
+    const updatedUser = await userRepository.update(id, data);
 
     if (data.isActive === false) {
       await cacheDelete(`user:${id}:active`);
     }
 
-    return toPublicUser(user);
+    return toPublicUser(updatedUser);
   }
 
   async resetPassword(id, temporaryPassword) {
-    const hash = await bcrypt.hash(temporaryPassword, 10);
-    const user = await userRepository.updatePassword(id, hash, true);
+    const user = await userRepository.findById(id);
     if (!user) throw new AppError('User not found', 404, 'NOT_FOUND');
+    if (user.isDemo) {
+      throw new AppError("Demo accounts can't be modified", 403, 'DEMO_ACCOUNT_FORBIDDEN');
+    }
+
+    const hash = await bcrypt.hash(temporaryPassword, 10);
+    const updatedUser = await userRepository.updatePassword(id, hash, true);
+    if (!updatedUser) throw new AppError('User not found', 404, 'NOT_FOUND');
 
     return {
       message: 'Password reset. User must change on next login.',
@@ -71,8 +98,20 @@ class UserService {
       throw new AppError('Cannot delete your own account', 400, 'SELF_DELETE');
     }
 
-    const user = await userRepository.delete(id);
+    const user = await userRepository.findById(id);
     if (!user) throw new AppError('User not found', 404, 'NOT_FOUND');
+    if (user.isDemo) {
+      throw new AppError("Demo accounts can't be modified", 403, 'DEMO_ACCOUNT_FORBIDDEN');
+    }
+    if (
+      user.role === 'admin' &&
+      user.isActive &&
+      (await userRepository.count({ role: 'admin', isActive: true, isDemo: { $ne: true } })) <= 1
+    ) {
+      throw new AppError('Cannot remove the last active admin', 403, 'LAST_ADMIN');
+    }
+
+    await userRepository.delete(id);
   }
 }
 

@@ -19,6 +19,7 @@ function toPublicUser(user) {
     role: user.role,
     isActive: user.isActive,
     mustChangePassword: user.mustChangePassword,
+    isDemo: user.isDemo,
   };
 }
 

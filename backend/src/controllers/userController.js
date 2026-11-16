@@ -33,6 +33,7 @@ const validateUpdate = [
   body('isActive').optional().isBoolean().withMessage('isActive must be boolean').toBoolean(),
   body('email').not().exists().withMessage('Email cannot be updated here'),
   body('password').not().exists().withMessage('Password cannot be updated here'),
+  body('isDemo').not().exists().withMessage('isDemo cannot be updated here'),
   validate,
 ];
 
