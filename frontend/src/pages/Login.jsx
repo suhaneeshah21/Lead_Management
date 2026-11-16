@@ -64,14 +64,25 @@ export default function Login() {
             onChange={(event) => setCredentials({ ...credentials, password: event.target.value })}
           />
         </label>
-        <div className="demo-credentials" aria-label="Demo admin credentials">
-          <strong>Demo admin access</strong>
-          <span>
-            Email: <code>admin@example.com</code>
-          </span>
-          <span>
-            Password: <code>Admin1234!</code>
-          </span>
+        <div className="demo-credentials" aria-label="Demo account credentials">
+          <div className="demo-credential">
+            <strong>Demo admin access</strong>
+            <span>
+              Email: <code>admin@example.com</code>
+            </span>
+            <span>
+              Password: <code>Admin1234!</code>
+            </span>
+          </div>
+          <div className="demo-credential">
+            <strong>Demo agent access</strong>
+            <span>
+              Email: <code>agent@example.com</code>
+            </span>
+            <span>
+              Password: <code>Agent1234!</code>
+            </span>
+          </div>
         </div>
         {wakingUp && (
           <p className="server-waking" role="status">

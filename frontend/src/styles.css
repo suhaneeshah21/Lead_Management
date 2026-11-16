@@ -350,13 +350,17 @@ td small {
 }
 .demo-credentials {
   display: grid;
-  gap: 5px;
+  gap: 12px;
   padding: 13px 15px;
   border: 1px solid #d6e1d7;
   border-radius: 3px;
   background: #f0f5f0;
   color: var(--muted);
   font-size: 12px;
+}
+.demo-credential {
+  display: grid;
+  gap: 5px;
 }
 .demo-credentials strong {
   color: var(--ink);
